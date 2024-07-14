@@ -1,15 +1,10 @@
-# vim: expandtab:ts=4:sw=4
-from __future__ import division, print_function, absolute_import
-
 import argparse
 import os
 
 import cv2
 import numpy as np
 
-from application_util import preprocessing
-from application_util import visualization
-from deep_sort import nn_matching
+from deep_sort import nn_matching, preprocessing, visualization
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 
