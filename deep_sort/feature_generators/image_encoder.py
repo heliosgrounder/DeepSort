@@ -8,7 +8,7 @@ class ImageEncoder(object):
             input_name="images",
             output_name="features"):
         self.session = tf.compat.v1.Session()
-        with open(checkpoint_filename, "rb") as file_handle:
+        with tf.io.gfile.GFile(checkpoint_filename, "rb") as file_handle:
             graph_def = tf.compat.v1.GraphDef()
             graph_def.ParseFromString(file_handle.read())
         tf.import_graph_def(graph_def, name="net")

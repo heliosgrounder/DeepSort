@@ -127,6 +127,19 @@ from utils.datasets import MOTChallenge
 #     return detection_list
 
 
+# def create_detections(detection_mat, frame_idx, min_height=0):
+#     frame_indices = detection_mat[:, 0].astype(int)
+#     mask = frame_indices == frame_idx
+
+#     detection_list = []
+#     for row in detection_mat[mask]:
+#         bbox, confidence, feature = row[2:6], row[6], row[10:]
+#         if bbox[3] < min_height:
+#             continue
+#         detection_list.append(Detection(bbox, confidence, feature))
+#     return detection_list
+
+
 def run(sequence_dir, detection_file, output_file, min_confidence,
         nms_max_overlap, min_detection_height, max_cosine_distance,
         nn_budget, display):
@@ -169,6 +182,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     tracker = Tracker(metric)
     results = []
 
+    # detections_all = np.load("resources/detections/MOT16_POI_test/MOT16-01.npy")
+
     def frame_callback(vis, frame_idx):
         print("Processing frame %05d" % frame_idx)
 
@@ -179,7 +194,10 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
         features = feature_generator.get_features(seq_info["image_filenames"][frame_idx], np.array([det.tlwh for det in detections]))
         detections = [Detection(detection.tlwh, detection.confidence, feature) for detection, feature in zip(detections, features)]
-        detections = [d for d in detections if d.confidence >= min_confidence]
+
+        # detections = create_detections(detections_all, frame_idx, 0)
+
+        # detections = [d for d in detections if d.confidence >= min_confidence]
 
 
 
@@ -189,6 +207,9 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         indices = preprocessing.non_max_suppression(
             boxes, nms_max_overlap, scores)
         detections = [detections[i] for i in indices]
+
+        # print(scores)
+        # input()
 
         # Update tracker.
         tracker.predict()
@@ -212,16 +233,16 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
     # Run tracker.
     if display:
-        visualizer = visualization.Visualization(seq_info, update_ms=5)
+        visualizer = visualization.Visualization(seq_info, update_ms=seq_info["update_ms"])
     else:
         visualizer = visualization.NoVisualization(seq_info)
     visualizer.run(frame_callback)
 
     # Store results.
-    f = open(output_file, 'w')
-    for row in results:
-        print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (
-            row[0], row[1], row[2], row[3], row[4], row[5]),file=f)
+    # f = open(output_file, 'w')
+    # for row in results:
+    #     print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (
+    #         row[0], row[1], row[2], row[3], row[4], row[5]),file=f)
 
 
 def bool_string(input_string):
@@ -240,7 +261,7 @@ def parse_args():
         default=None, required=True)
     parser.add_argument(
         "--detection_file", help="Path to custom detections.", default=None,
-        required=True)
+        required=False)
     parser.add_argument(
         "--output_file", help="Path to the tracking output file. This file will"
         " contain the tracking results on completion.",
