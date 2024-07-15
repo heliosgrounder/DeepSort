@@ -38,7 +38,7 @@ class MOTChallenge():
                 info_dict = dict([s for s in line_splits if isinstance(s, list) and len(s) == 2])
 
             sequence_name = info_dict["name"]
-            image_size = (info_dict["imHeight"], info_dict["imWidth"])
+            image_size = (int(info_dict["imHeight"]), int(info_dict["imWidth"]))
             update_ms = 1000 / int(info_dict["frameRate"])
             min_frame_idx = 1
             max_frame_idx = int(info_dict["seqLength"])

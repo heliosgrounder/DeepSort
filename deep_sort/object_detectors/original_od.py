@@ -2,7 +2,7 @@ import os
 import numpy as np
 import cv2
 import tensorflow as tf
-from detection import Detection
+from deep_sort.detection import Detection
 
 class ImageEncoder(object):
 
@@ -128,14 +128,14 @@ class OriginalOD():
 
         encoder = self.__create_box_encoder("resources/networks/mars-small128.pb", batch_size=32)
 
-        image_index = int(os.path.splitext(image_file)[0])
+        image_index = int(os.path.splitext(os.path.basename(image_file))[0])
 
         frame_indices = self.__detections_in[:, 0].astype(int)
         mask = frame_indices == image_index
 
         rows = self.__detections_in[mask]
 
-        bgr_image = cv2.imread(os.path.join(self.path, "img1/", image_file), cv2.IMREAD_COLOR)
+        bgr_image = cv2.imread(image_file, cv2.IMREAD_COLOR)
         features = encoder(bgr_image, rows[:, 2:6].copy())
 
         detections_out += [np.r_[(row, feature)] for row, feature in zip(rows, features)]
@@ -151,5 +151,5 @@ class OriginalOD():
         return detections_list
         
 
-test = OriginalOD("MOT16/test/MOT16-02/")
-print(test.get_detections("000001.jpg"))
+# test = OriginalOD("MOT16/test/MOT16-02/")
+# print(test.get_detections("000001.jpg"))
