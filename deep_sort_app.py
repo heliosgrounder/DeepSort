@@ -171,7 +171,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         print("Processing frame %05d" % frame_idx)
 
         # Load image and generate detections.
-        detections = detector.get_detections(seq_info["image_filenames"][frame_idx])
+        detections = detector.get_detections(seq_info["image_filenames"][frame_idx], min_detection_height)
         # detections = create_detections(
         #     seq_info["detections"], frame_idx, min_detection_height)
         detections = [d for d in detections if d.confidence >= min_confidence]

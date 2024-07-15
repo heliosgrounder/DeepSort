@@ -5,7 +5,6 @@ import tensorflow as tf
 from deep_sort.detection import Detection
 
 class ImageEncoder(object):
-
     def __init__(
             self, 
             checkpoint_filename, 
@@ -53,6 +52,7 @@ class OriginalOD():
         self.__detections_in = None
         if os.path.exists(detection_file):
             self.__detections_in = np.loadtxt(detection_file, delimiter=',')
+        self.image_encoder = ImageEncoder("resources/networks/mars-small128.pb")
 
     def __extract_image_patch(self, image, bbox, patch_shape):
         """Extract image patch from bounding box.
@@ -106,8 +106,8 @@ class OriginalOD():
         input_name="images",
         output_name="features", 
         batch_size=32):
-        image_encoder = ImageEncoder(model_filename, input_name, output_name)
-        image_shape = image_encoder.image_shape
+        # image_encoder = ImageEncoder(model_filename, input_name, output_name)
+        image_shape = self.image_encoder.image_shape
 
         def encoder(image, boxes):
             image_patches = []
@@ -119,7 +119,7 @@ class OriginalOD():
                         0., 255., image_shape).astype(np.uint8)
                 image_patches.append(patch)
             image_patches = np.asarray(image_patches)
-            return image_encoder(image_patches, batch_size)
+            return self.image_encoder(image_patches, batch_size)
 
         return encoder
     
