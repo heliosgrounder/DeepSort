@@ -1,7 +1,7 @@
 ### TODO LIST:
 
 - [ ] Complete Restruction of project
-- [ ] Separate feature generation from original_od.py to another module
+- [x] Separate feature generation from original_od.py to another module
 - [ ] Maybe using pregenerated features?
 - [ ] Write detection classes for yolo versions and original way to detect.
 - [ ] How to use nanodet and mmdetection and torchreid? I need to build packages and use it? Maybe I need convert this repo to package too?

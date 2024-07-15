@@ -11,6 +11,7 @@ from deep_sort.tracker import Tracker
 from deep_sort.iou_matching import iou_cost
 
 from deep_sort.object_detectors.original_od import OriginalOD
+from deep_sort.feature_generators.original_fg import OriginalFG
 from utils.datasets import MOTChallenge
 
 
@@ -160,6 +161,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     dataset = MOTChallenge(sequence_dir)
     seq_info = dataset.get_info()
     detector = OriginalOD(sequence_dir)
+    feature_generator = OriginalFG()
 
     # seq_info = gather_sequence_info(sequence_dir, detection_file)
     metric = nn_matching.NearestNeighborDistanceMetric(
@@ -174,7 +176,12 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         detections = detector.get_detections(seq_info["image_filenames"][frame_idx], min_detection_height)
         # detections = create_detections(
         #     seq_info["detections"], frame_idx, min_detection_height)
+
+        features = feature_generator.get_features(seq_info["image_filenames"][frame_idx], np.array([det.tlwh for det in detections]))
+        detections = [Detection(detection.tlwh, detection.confidence, feature) for detection, feature in zip(detections, features)]
         detections = [d for d in detections if d.confidence >= min_confidence]
+
+
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
@@ -237,7 +244,7 @@ def parse_args():
     parser.add_argument(
         "--output_file", help="Path to the tracking output file. This file will"
         " contain the tracking results on completion.",
-        default="hypotheses.txt")
+        default=None)
     parser.add_argument(
         "--min_confidence", help="Detection confidence threshold. Disregard "
         "all detections that have a confidence lower than this value.",

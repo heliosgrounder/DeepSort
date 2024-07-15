@@ -1,8 +1,7 @@
 import os
 import numpy as np
 import cv2
-import tensorflow as tf
-from deep_sort.detection import Detection
+from deep_sort.bbox import BBox
 
 class ImageEncoder(object):
     def __init__(
@@ -52,7 +51,7 @@ class OriginalOD():
         self.__detections_in = None
         if os.path.exists(detection_file):
             self.__detections_in = np.loadtxt(detection_file, delimiter=',')
-        self.image_encoder = ImageEncoder("resources/networks/mars-small128.pb")
+        # self.image_encoder = ImageEncoder("resources/networks/mars-small128.pb")
 
     def __extract_image_patch(self, image, bbox, patch_shape):
         """Extract image patch from bounding box.
@@ -123,10 +122,10 @@ class OriginalOD():
 
         return encoder
     
-    def get_detections(self, image_file, min_detection_height=0):
+    def get_detections(self, image_file, encoder, min_detection_height=0):
         detections_out = []
 
-        encoder = self.__create_box_encoder("resources/networks/mars-small128.pb", batch_size=32)
+        # encoder = self.__create_box_encoder("resources/networks/mars-small128.pb", batch_size=32)
 
         image_index = int(os.path.splitext(os.path.basename(image_file))[0])
 
@@ -135,18 +134,25 @@ class OriginalOD():
 
         rows = self.__detections_in[mask]
 
-        bgr_image = cv2.imread(image_file, cv2.IMREAD_COLOR)
-        features = encoder(bgr_image, rows[:, 2:6].copy())
+        # bgr_image = cv2.imread(image_file, cv2.IMREAD_COLOR)
+        # features = encoder(bgr_image, rows[:, 2:6].copy())
 
-        detections_out += [np.r_[(row, feature)] for row, feature in zip(rows, features)]
+        # detections_out += [np.r_[(row, feature)] for row, feature in zip(rows, features)]
 
+
+        # detections_list = []
+        # for row in detections_out:
+        #     bbox, confidence, feature = row[2:6], row[6], row[10:]
+        #     if bbox[3] < min_detection_height:
+        #         continue
+        #     detections_list.append(Detection(bbox, confidence, feature))
 
         detections_list = []
-        for row in detections_out:
-            bbox, confidence, feature = row[2:6], row[6], row[10:]
+        for row in rows:
+            bbox, confidence = row[2:6], row[6]
             if bbox[3] < min_detection_height:
                 continue
-            detections_list.append(Detection(bbox, confidence, feature))
+            detections_list.append(BBox(bbox, confidence))
 
         return detections_list
         
