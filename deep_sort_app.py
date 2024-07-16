@@ -13,8 +13,10 @@ from deep_sort.iou_matching import iou_cost
 from deep_sort.object_detectors.original_od import OriginalOD
 from deep_sort.object_detectors.yolov5_od import YOLOv5OD
 from deep_sort.object_detectors.yolov10_od import YOLOv10OD
+from deep_sort.object_detectors.nanodet_od import NanodetOD
 
 from deep_sort.types.yolo_model_types import YOLOv5Types, YOLOv10Types
+from deep_sort.types.nanodet_types import NanodetModelTypes
 
 from deep_sort.feature_generators.original_fg import OriginalFG
 from utils.datasets import MOTChallenge
@@ -179,8 +181,9 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     dataset = MOTChallenge(sequence_dir)
     seq_info = dataset.get_info()
     # detector = OriginalOD(sequence_dir)
-    # detector = YOLOv5OD(YOLOv5Types.EXTRALARGE)
-    detector = YOLOv10OD(YOLOv10Types.BALANCED)
+    detector = YOLOv5OD(YOLOv5Types.NANO)
+    # detector = YOLOv10OD(YOLOv10Types.BALANCED)
+    # detector = NanodetOD(NanodetModelTypes.PLUSM416)
     feature_generator = OriginalFG()
 
     # seq_info = gather_sequence_info(sequence_dir, detection_file)
@@ -204,7 +207,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
         # detections = create_detections(detections_all, frame_idx, 0)
 
-        # detections = [d for d in detections if d.confidence >= min_confidence]
+        detections = [d for d in detections if d.confidence >= min_confidence]
 
 
 
