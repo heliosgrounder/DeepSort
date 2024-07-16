@@ -15,10 +15,15 @@ from deep_sort.object_detectors.yolov5_od import YOLOv5OD
 from deep_sort.object_detectors.yolov10_od import YOLOv10OD
 from deep_sort.object_detectors.nanodet_od import NanodetOD
 
+from deep_sort.feature_generators.original_fg import OriginalFG
+from deep_sort.feature_generators.dpreid_fg import DeepPersonReidFG
+
 from deep_sort.types.yolo_model_types import YOLOv5Types, YOLOv10Types
 from deep_sort.types.nanodet_types import NanodetModelTypes
+from deep_sort.types.dpreid_types import DeepPersonReidTypes
 
-from deep_sort.feature_generators.original_fg import OriginalFG
+
+
 from utils.datasets import MOTChallenge
 
 
@@ -184,7 +189,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     detector = YOLOv5OD(YOLOv5Types.NANO)
     # detector = YOLOv10OD(YOLOv10Types.BALANCED)
     # detector = NanodetOD(NanodetModelTypes.PLUSM416)
-    feature_generator = OriginalFG()
+    # feature_generator = OriginalFG()
+    feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_75)
 
     # seq_info = gather_sequence_info(sequence_dir, detection_file)
     metric = nn_matching.NearestNeighborDistanceMetric(
