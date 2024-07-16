@@ -123,7 +123,7 @@ class OriginalOD():
     #     return encoder
     
     def get_detections(self, image_file, min_detection_height=0):
-        detections_out = []
+        # detections_out = []
 
         # encoder = self.__create_box_encoder("resources/networks/mars-small128.pb", batch_size=32)
 
