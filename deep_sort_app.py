@@ -23,6 +23,7 @@ from deep_sort.types.nanodet_types import NanodetModelTypes
 from deep_sort.types.dpreid_types import DeepPersonReidTypes
 
 from deep_sort.metrics.fps import FPSMetric
+from deep_sort.metrics.classic import ClassicsMetric
 
 
 
@@ -202,6 +203,11 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
     # detections_all = np.load("resources/detections/MOT16_POI_test/MOT16-01.npy")
 
+    metric_detections = []
+    metric_gts = seq_info["groundtruth"]
+
+    metric_gts = [[int(i[0])] + i[2:6].tolist() for i in metric_gts if i[6] >= min_confidence]
+
     def frame_callback(vis, frame_idx):
         print("Processing frame %05d" % frame_idx)
 
@@ -217,7 +223,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
         detections = [d for d in detections if d.confidence >= min_confidence]
 
-
+        for i in detections:
+            metric_detections.append([frame_idx] + i.tlwh.tolist())
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
@@ -257,6 +264,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     visualizer.run(frame_callback)
 
 
+    classic_metrics = ClassicsMetric(metric_detections, metric_gts)
+    print(classic_metrics.get_metric())
     # fps_metric = FPSMetric(visualizer)
     # print(fps_metric.get_fps())
 
