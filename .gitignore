@@ -94,3 +94,5 @@ MOT16/
 other/
 models/
 packages/
+testing_data/
+tracker.txt

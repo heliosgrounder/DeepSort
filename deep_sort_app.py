@@ -22,6 +22,8 @@ from deep_sort.types.yolo_model_types import YOLOv5Types, YOLOv10Types
 from deep_sort.types.nanodet_types import NanodetModelTypes
 from deep_sort.types.dpreid_types import DeepPersonReidTypes
 
+from deep_sort.metrics.fps import FPSMetric
+
 
 
 from utils.datasets import MOTChallenge
@@ -189,8 +191,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     detector = YOLOv5OD(YOLOv5Types.NANO)
     # detector = YOLOv10OD(YOLOv10Types.BALANCED)
     # detector = NanodetOD(NanodetModelTypes.PLUSM416)
-    # feature_generator = OriginalFG()
-    feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_75)
+    feature_generator = OriginalFG()
+    # feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_75)
 
     # seq_info = gather_sequence_info(sequence_dir, detection_file)
     metric = nn_matching.NearestNeighborDistanceMetric(
@@ -254,11 +256,15 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         visualizer = visualization.NoVisualization(seq_info)
     visualizer.run(frame_callback)
 
-    # Store results.
-    # f = open(output_file, 'w')
-    # for row in results:
-    #     print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (
-    #         row[0], row[1], row[2], row[3], row[4], row[5]),file=f)
+
+    # fps_metric = FPSMetric(visualizer)
+    # print(fps_metric.get_fps())
+
+    #Store results.
+    f = open(output_file, 'w')
+    for row in results:
+        print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (
+            row[0], row[1], row[2], row[3], row[4], row[5]),file=f)
 
 
 def bool_string(input_string):
@@ -281,7 +287,7 @@ def parse_args():
     parser.add_argument(
         "--output_file", help="Path to the tracking output file. This file will"
         " contain the tracking results on completion.",
-        default=None)
+        default="tracker.txt")
     parser.add_argument(
         "--min_confidence", help="Detection confidence threshold. Disregard "
         "all detections that have a confidence lower than this value.",

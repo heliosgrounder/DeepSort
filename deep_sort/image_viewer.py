@@ -109,6 +109,7 @@ class ImageViewer(object):
         self._color = (0, 0, 0)
         self.text_color = (255, 255, 255)
         self.thickness = 1
+        self.fps_list = []
 
     @property
     def color(self):
@@ -298,15 +299,25 @@ class ImageViewer(object):
 
         self._terminate, is_paused = False, False
         # print("ImageViewer is paused, press space to start.")
+
+        new_frame_time = 0
+        prev_frame_time = 0
+
         while not self._terminate:
-            t0 = time.time()
+            # t0 = time.time()
             if not is_paused:
                 self._terminate = not self._user_fun()
                 if self._video_writer is not None:
                     self._video_writer.write(
                         cv2.resize(self.image, self._window_shape))
-            t1 = time.time()
-            remaining_time = max(1, int(self._update_ms - 1e3*(t1-t0)))
+            
+            new_frame_time = time.time()
+            self.fps_list.append(1/(new_frame_time-prev_frame_time))
+            prev_frame_time = new_frame_time
+
+            # remaining_time = max(1, int(self._update_ms - 1e3*(t1-t0)))
+            # remaining_time = max(1, int(self._update_ms))
+            remaining_time = 1
             cv2.imshow(
                 self._caption, cv2.resize(self.image, self._window_shape[:2]))
             key = cv2.waitKey(remaining_time)
@@ -320,6 +331,8 @@ class ImageViewer(object):
                 print("stepping")
                 self._terminate = not self._user_fun()
                 is_paused = True
+            # t1 = time.time()
+            # self.time_list.append(t1 - t0)
 
         # Due to a bug in OpenCV we must call imshow after destroying the
         # window. This will make the window appear again as soon as waitKey

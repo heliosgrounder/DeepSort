@@ -98,6 +98,9 @@ class Visualization(object):
     def run(self, frame_callback):
         self.viewer.run(lambda: self._update_fun(frame_callback))
 
+    def get_fps(self):
+        return np.mean(self.viewer.fps_list)
+
     def _update_fun(self, frame_callback):
         if self.frame_idx > self.last_idx:
             return False  # Terminate
