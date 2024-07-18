@@ -24,6 +24,7 @@ from deep_sort.types.dpreid_types import DeepPersonReidTypes
 
 from deep_sort.metrics.fps import FPSMetric
 from deep_sort.metrics.classic import ClassicsMetric
+from deep_sort.metrics.hota import HotaMetric
 
 
 
@@ -188,8 +189,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     """
     dataset = MOTChallenge(sequence_dir)
     seq_info = dataset.get_info()
-    # detector = OriginalOD(sequence_dir)
-    detector = YOLOv5OD(YOLOv5Types.NANO)
+    detector = OriginalOD(sequence_dir)
+    # detector = YOLOv5OD(YOLOv5Types.NANO)
     # detector = YOLOv10OD(YOLOv10Types.BALANCED)
     # detector = NanodetOD(NanodetModelTypes.PLUSM416)
     feature_generator = OriginalFG()
@@ -206,7 +207,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     metric_detections = []
     metric_gts = seq_info["groundtruth"]
 
-    metric_gts = [[int(i[0])] + i[2:6].tolist() for i in metric_gts if i[6] >= min_confidence]
+    metric_gts = [[int(i[0])] + i[1:6].tolist() for i in metric_gts if i[6] >= min_confidence]
 
     def frame_callback(vis, frame_idx):
         print("Processing frame %05d" % frame_idx)
@@ -253,8 +254,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue
             bbox = track.to_tlwh()
-            results.append([
-                frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3]])
+            results.append([frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3]])
 
     # Run tracker.
     if display:
@@ -266,6 +266,8 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
     classic_metrics = ClassicsMetric(metric_detections, metric_gts)
     print(classic_metrics.get_metric())
+    hota_metric = HotaMetric(results, metric_gts)
+    print(hota_metric.get_metric())
     # fps_metric = FPSMetric(visualizer)
     # print(fps_metric.get_fps())
 

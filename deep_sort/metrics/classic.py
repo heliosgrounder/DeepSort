@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-# from deep_sort.iou_matching import iou
-
 def iou(bbox_1, bbox_2):
     b_1 = [0, 0, 0, 0]
     b_1[0] = bbox_1[0]
@@ -50,7 +48,7 @@ class ClassicsMetric():
                     "det": [],
                     "gt": []
                 }
-            self.__frame_dict[gt[0]]["gt"].append(gt[1:])
+            self.__frame_dict[gt[0]]["gt"].append(gt[2:])
 
         mega_confusion = [0, 0, 0]
         for frame_id in self.__frame_dict.keys():
@@ -111,31 +109,3 @@ class ClassicsMetric():
         confusion[2] = len(gt_per_frame) - confusion[0]
 
         return confusion
-
-
-
-
-
-
-class PrecisionMetric():
-    def __init__(self):
-        pass
-
-    def get_metric(self):
-        pass
-
-
-class RecallMetric():
-    def __init__(self):
-        pass
-    
-    def get_metric(self):
-        pass
-    
-
-class F1Metric():
-    def __init__(self):
-        pass
-    
-    def get_metric(self):
-        pass
