@@ -55,7 +55,7 @@ class DeepPersonReidFG():
         self.__extractor = FeatureExtractor(
             model_name=model_name,
             model_path=model_path,
-            device="cpu"
+            device="cuda"
         )
     
     def __extract_image_patch(self, image, bbox, patch_shape):
@@ -115,4 +115,4 @@ class DeepPersonReidFG():
             image_patches.append(patch)
         # image_patches = np.asarray(image_patches)
         features = self.__extractor(image_patches)
-        return features.numpy()
+        return features.cpu().numpy()
