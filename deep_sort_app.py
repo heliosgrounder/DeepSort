@@ -158,7 +158,7 @@ from utils.datasets import MOTChallenge
 
 def run(sequence_dir, detection_file, output_file, min_confidence,
         nms_max_overlap, min_detection_height, max_cosine_distance,
-        nn_budget, display):
+        nn_budget, detection_model, feature_generator_model, display):
     """Run multi-target tracker on a particular sequence.
 
     Parameters
@@ -189,16 +189,78 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
     """
     dataset = MOTChallenge(sequence_dir)
     seq_info = dataset.get_info()
-    detector = OriginalOD(sequence_dir)
+
+    match detection_model:
+        case "original":
+            detector = OriginalOD(sequence_dir)
+        case "yolov5nano":
+            detector = YOLOv5OD(YOLOv5Types.NANO)
+        case "yolov5small":
+            detector = YOLOv5OD(YOLOv5Types.SMALL)
+        case "yolov5medium":
+            detector = YOLOv5OD(YOLOv5Types.MEDIUM)
+        case "yolov5large":
+            detector = YOLOv5OD(YOLOv5Types.LARGE)
+        case "yolov5extralarge":
+            detector = YOLOv5OD(YOLOv5Types.EXTRALARGE)
+        case "yolov10nano":
+            detector = YOLOv10OD(YOLOv10Types.NANO)
+        case "yolov10small":
+            detector = YOLOv10OD(YOLOv10Types.SMALL)
+        case "yolov10medium":
+            detector = YOLOv10OD(YOLOv10Types.MEDIUM)
+        case "yolov10balanced":
+            detector = YOLOv10OD(YOLOv10Types.BALANCED)
+        case "yolov10large":
+            detector = YOLOv10OD(YOLOv10Types.LARGE)
+        case "yolov10extralarge":
+            detector = YOLOv10OD(YOLOv10Types.EXTRALARGE)
+        case "nanodet":
+            detector = NanodetOD(NanodetModelTypes.PLUSM416)
+        case _:
+            raise ValueError(f"Invalid detection model: {detection_model}")
+        
+    match feature_generator_model:
+        case "original":
+            feature_generator = OriginalFG()
+        case "dpreid_shufflenet":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.SHUFFLENET)
+        case "dpreid_mlfn":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.MLFN)
+        case "dpreid_mobilenetv2_1_0":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.MOBILENETv2_x1_0)
+        case "dpreid_mobilenetv2_1_4":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.MOBILENETv2_x1_4)
+        case "dpreid_osnet_ibn_x1_0":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_IBN_x1_0)
+        case "dpreid_osnet_ain_x1_0":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x1_0)
+        case "dpreid_osnet_ain_x0_75":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_75)
+        case "dpreid_osnet_ain_x0_5":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_5)
+        case "dpreid_osnet_ain_x0_25":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_25)
+        case "dpreid_osnet_x1_0":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_x1_0)
+        case "dpreid_osnet_x0_75":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_x0_75)
+        case "dpreid_osnet_x0_5":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_x0_5)
+        case "dpreid_osnet_x0_25":
+            feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_x0_25)
+        case _:
+            raise ValueError(f"Invalid feature generator model: {feature_generator_model}")
+
+    # detector = OriginalOD(sequence_dir)
     # detector = YOLOv5OD(YOLOv5Types.NANO)
     # detector = YOLOv10OD(YOLOv10Types.BALANCED)
     # detector = NanodetOD(NanodetModelTypes.PLUSM416)
-    feature_generator = OriginalFG()
+    # feature_generator = OriginalFG()
     # feature_generator = DeepPersonReidFG(DeepPersonReidTypes.OSNET_AIN_x0_75)
 
     # seq_info = gather_sequence_info(sequence_dir, detection_file)
-    metric = nn_matching.NearestNeighborDistanceMetric(
-        "cosine", max_cosine_distance, nn_budget)
+    metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric)
     results = []
 
@@ -230,8 +292,7 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.confidence for d in detections])
-        indices = preprocessing.non_max_suppression(
-            boxes, nms_max_overlap, scores)
+        indices = preprocessing.non_max_suppression(boxes, nms_max_overlap, scores)
         detections = [detections[i] for i in indices]
 
         # print(scores)
@@ -265,11 +326,15 @@ def run(sequence_dir, detection_file, output_file, min_confidence,
 
 
     classic_metrics = ClassicsMetric(metric_detections, metric_gts)
-    print(classic_metrics.get_metric())
+    metrics = classic_metrics.get_metric()
+    # print(classic_metrics.get_metric())
     hota_metric = HotaMetric(results, metric_gts)
-    print(hota_metric.get_metric())
+    metrics["hota"] = hota_metric.get_metric()
+    # print(hota_metric.get_metric())
     # fps_metric = FPSMetric(visualizer)
     # print(fps_metric.get_fps())
+
+    print(metrics)
 
     #Store results.
     f = open(output_file, 'w')
@@ -319,6 +384,12 @@ def parse_args():
     parser.add_argument(
         "--display", help="Show intermediate tracking results",
         default=True, type=bool_string)
+    parser.add_argument(
+        "--detection_model", help="Detection model",
+        default="original")
+    parser.add_argument(
+        "--feature_generator_model", help="Feature generator model",
+        default="original")
     return parser.parse_args()
 
 
@@ -327,4 +398,4 @@ if __name__ == "__main__":
     run(
         args.sequence_dir, args.detection_file, args.output_file,
         args.min_confidence, args.nms_max_overlap, args.min_detection_height,
-        args.max_cosine_distance, args.nn_budget, args.display)
+        args.max_cosine_distance, args.nn_budget, args.detection_model, args.feature_generator_model, args.display)
