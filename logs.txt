@@ -1,2 +1,0 @@
-WARNING:tensorflow:From E:\Projects\deepsort\deep_sort\deep_sort\feature_generators\image_encoder.py:10: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
-
